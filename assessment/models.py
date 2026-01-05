@@ -5,13 +5,10 @@ from django.db import models
 
 
 def generate_ulid_as_string():
-    """Generate a ULID string for use as primary key."""
     return str(ulid.new())
 
 
 class Exam(models.Model):
-    """Represents an exam/assessment."""
-
     id = models.CharField(
         primary_key=True, default=generate_ulid_as_string, editable=False, max_length=26
     )
@@ -32,8 +29,6 @@ class Exam(models.Model):
 
 
 class Question(models.Model):
-    """Represents a question within an exam."""
-
     QUESTION_TYPES = (
         ("MCQ", "Multiple Choice Question"),
         ("SHORT", "Short Answer"),
@@ -63,8 +58,6 @@ class Question(models.Model):
 
 
 class Submission(models.Model):
-    """Represents a student's submission for an exam."""
-
     id = models.CharField(
         primary_key=True, default=generate_ulid_as_string, editable=False, max_length=26
     )
@@ -106,8 +99,6 @@ class Submission(models.Model):
 
 
 class Answer(models.Model):
-    """Represents a student's answer to a specific question."""
-
     submission = models.ForeignKey(
         Submission, related_name="answers", on_delete=models.CASCADE, db_index=True
     )
