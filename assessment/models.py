@@ -1,13 +1,7 @@
-"""
-Database models for the Assessment Engine.
-
-This module defines the core data models for exams, questions, submissions, and answers.
-All models use ULID as primary keys for better distributed system compatibility.
-"""
 import ulid
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 def generate_ulid_as_string():
@@ -17,17 +11,13 @@ def generate_ulid_as_string():
 
 class Exam(models.Model):
     """Represents an exam/assessment."""
+
     id = models.CharField(
-        primary_key=True,
-        default=generate_ulid_as_string,
-        editable=False,
-        max_length=26
+        primary_key=True, default=generate_ulid_as_string, editable=False, max_length=26
     )
     title = models.CharField(max_length=255, db_index=True)
     course = models.CharField(max_length=255, db_index=True)
-    duration_minutes = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
-    )
+    duration_minutes = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     metadata = models.JSONField(blank=True, default=dict)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
@@ -43,6 +33,7 @@ class Exam(models.Model):
 
 class Question(models.Model):
     """Represents a question within an exam."""
+
     QUESTION_TYPES = (
         ("MCQ", "Multiple Choice Question"),
         ("SHORT", "Short Answer"),
@@ -50,24 +41,15 @@ class Question(models.Model):
     )
 
     id = models.CharField(
-        primary_key=True,
-        default=generate_ulid_as_string,
-        editable=False,
-        max_length=26
+        primary_key=True, default=generate_ulid_as_string, editable=False, max_length=26
     )
     exam = models.ForeignKey(
-        Exam,
-        related_name="questions",
-        on_delete=models.CASCADE,
-        db_index=True
+        Exam, related_name="questions", on_delete=models.CASCADE, db_index=True
     )
     question_text = models.TextField()
     question_type = models.CharField(max_length=10, choices=QUESTION_TYPES)
     expected_answer = models.TextField()
-    marks = models.PositiveIntegerField(
-        default=1,
-        validators=[MinValueValidator(1)]
-    )
+    marks = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     order = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
@@ -82,31 +64,22 @@ class Question(models.Model):
 
 class Submission(models.Model):
     """Represents a student's submission for an exam."""
+
     id = models.CharField(
-        primary_key=True,
-        default=generate_ulid_as_string,
-        editable=False,
-        max_length=26
+        primary_key=True, default=generate_ulid_as_string, editable=False, max_length=26
     )
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="submissions",
         on_delete=models.CASCADE,
-        db_index=True
+        db_index=True,
     )
     exam = models.ForeignKey(
-        Exam,
-        related_name="submissions",
-        on_delete=models.CASCADE,
-        db_index=True
+        Exam, related_name="submissions", on_delete=models.CASCADE, db_index=True
     )
     submitted_at = models.DateTimeField(auto_now_add=True, db_index=True)
     graded_at = models.DateTimeField(null=True, blank=True)
-    score = models.FloatField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0)]
-    )
+    score = models.FloatField(null=True, blank=True, validators=[MinValueValidator(0)])
     max_score = models.FloatField(null=True, blank=True)
 
     class Meta:
@@ -134,22 +107,14 @@ class Submission(models.Model):
 
 class Answer(models.Model):
     """Represents a student's answer to a specific question."""
+
     submission = models.ForeignKey(
-        Submission,
-        related_name="answers",
-        on_delete=models.CASCADE,
-        db_index=True
+        Submission, related_name="answers", on_delete=models.CASCADE, db_index=True
     )
-    question = models.ForeignKey(
-        Question,
-        on_delete=models.CASCADE,
-        db_index=True
-    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, db_index=True)
     student_answer = models.TextField()
     awarded_marks = models.FloatField(
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0)]
+        null=True, blank=True, validators=[MinValueValidator(0)]
     )
 
     class Meta:
